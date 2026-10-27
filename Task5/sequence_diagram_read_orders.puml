@@ -1,0 +1,25 @@
+@startuml sequence_diagram_read_orders
+title Чтение списка заказов
+
+actor Operator
+participant "MES Frontend" as UI
+participant "MES API" as API
+participant "Redis (кеш)" as Redis
+participant "MES DB" as DB
+
+Operator -> UI: Запросить список заказов
+UI -> API: GET /api/orders
+API -> Redis: GET orders:list
+
+alt Кеш содержит данные
+    Redis --> API: данные списка
+else Кеш пуст
+    Redis --> API: null
+    API -> DB: SELECT * FROM orders ...
+    DB --> API: список заказов
+    API -> Redis: SET orders:list <data> EX 300
+end
+
+API --> UI: 200 OK (список заказов)
+UI --> Operator: Показать список
+@enduml

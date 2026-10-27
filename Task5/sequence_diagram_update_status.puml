@@ -1,0 +1,18 @@
+@startuml sequence_diagram_update_status
+title Изменение статуса заказа
+
+actor Operator
+participant "MES Frontend" as UI
+participant "MES API" as API
+participant "Redis (кеш)" as Redis
+participant "MES DB" as DB
+
+Operator -> UI: Изменить статус заказа
+UI -> API: PATCH /api/orders/{id} (новый статус)
+API -> DB: UPDATE orders SET status = ? WHERE id = ?
+DB --> API: success
+API -> Redis: DEL orders:list
+API -> Redis: DEL order:{id}
+API --> UI: 200 OK
+UI --> Operator: Подтверждение обновления
+@enduml
